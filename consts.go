@@ -23,7 +23,7 @@ const (
 	pageSz = int64(4096)
 
 	// For logging.
-	yankLogPfx  = "de-swap: * %s: region[0x%012x-0x%012x]: %8d kB"
+	yankLogPfx  = "de-swap:  * %s: region[0x%012x-0x%012x]: %8d kB"
 	yankErrMsg  = "ERR  (%s: %v)\n"
 	yankOKMsg   = "OK\n"
 	yankWarnMsg = "WARN (read-fail: %d/%d)\n"
