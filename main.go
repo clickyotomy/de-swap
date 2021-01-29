@@ -11,8 +11,6 @@ import (
 )
 
 var (
-	// For more details on the patterns defined above, please refer to
-	// "https://www.kernel.org/doc/Documentation/filesystems/proc.txt".
 	// Compile the expressions here (it needs to be done only once).
 	mmapRe = regexp.MustCompile(mmapPat)
 	swapRe = regexp.MustCompile(swapPat)
