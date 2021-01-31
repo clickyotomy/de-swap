@@ -1,6 +1,7 @@
-.DEFAULT_GOAL = dev
 PROG          = de-swap
 SRC           = main.go
+
+all: mod fmt vet build
 
 fmt:
 	go fmt ./...
@@ -16,6 +17,4 @@ mod:
 	go mod tidy
 	go mod verify
 
-dev: mod fmt vet build
-
-.PHONY: fmt build vet mod dev linux
+.PHONY: fmt build vet mod all
