@@ -11,17 +11,19 @@ knows what it's doing. However, if there is a really good reason
 to (quicky) force "swapped-out" pages back into memory, `de-swap'
 runs faster compared to `swapoff'.
 
-Before running the program, it is probably a good idea to drop
-caches (free slab objects and the page-cache [1]) with:
+Before running the program (requires superuser privileges), it
+is probably a good idea to drop caches (free slab objects and
+the page-cache [1]) with:
 
-    $ sync; echo 3 > /proc/sys/vm/drop_caches
+    sync; echo 3 > /proc/sys/vm/drop_caches
 
-and verify that there is enough memory before running the program.
-If there isn't enough "free" memory to swap into, `oom-kill' will
-likely be triggered or, something worse (like a kernel panic).
+and verify that there is enough memory. If there isn't enough
+"free" memory to swap into, `oom-kill' will likely be triggered
+or, something worse (like a kernel panic).
+
 After it exits, run:
 
-    $ swapoff [-v] [/<swapfile>|-a]; swapon [-v] [/<swapfile>|-a]
+    swapoff [-v] [/<swapfile>|-a]; swapon [-v] [/<swapfile>|-a]
 
 to clear the already swapped in memory from the swap space. This
 time, `swapoff' will be faster because there isn't much work for
@@ -42,7 +44,8 @@ how the swap area is freed in good detail.
 
 
 BUILD
-    To generate the binary, run "make".
+    To generate the binary, run:
+        make GOOS="linux" [GOARCH="<arch>"]
 
 
 USAGE
