@@ -16,7 +16,7 @@ caches (free slab objects and the page-cache [1]) with:
 
     $ sync; echo 3 > /proc/sys/vm/drop_caches
 
-and verify that there is enough memory before running this program.
+and verify that there is enough memory before running the program.
 If there isn't enough "free" memory to swap into, `oom-kill' will
 likely be triggered or, something worse (like a kernel panic).
 After it exits, run:
