@@ -44,8 +44,10 @@ how the swap area is freed in good detail.
 BUILD
     To generate the binary, run "make".
 
+
 USAGE
     de-swap -p <pid> [-n -j <threads> -v[v]]
+
 
 ARGUMENTS
     -p     PID of the process to swap-in
