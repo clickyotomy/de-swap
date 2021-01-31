@@ -91,7 +91,6 @@ func split(mr *[]mmapSwapRegion) {
 			}
 
 			brk = append(brk, mmapSwapRegion{sz, off, end, false})
-
 			nr++
 		}
 	}

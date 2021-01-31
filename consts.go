@@ -15,13 +15,13 @@ const (
 
 	// pidSmaps and pidMem are paths to the process's
 	// memory mapping and memory on `procfs' respectively.
-	pidSmaps = "./proc/%d/smaps"
+	pidSmaps = "/proc/%d/smaps"
 	pidMem   = "/proc/%d/mem"
 
 	// For logging.
 	mainRunMsg = "de-swap: main:\tPID %d (theads: %d, split: %s, " +
 		"no-op: %v)\n"
-	mainEndMsg = "de-swap: main:\tOK; moved %d kB in %s\n"
+	mainEndMsg = "de-swap: main:\tOK; swapped-in %d kB in %s\n"
 	mainErrMsg = "de-swap: main:\tERR: %s\n"
 	argsErrMsg = "de-swap: args:\tERR: %s\n"
 
