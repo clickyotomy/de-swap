@@ -29,7 +29,7 @@ it to do.
 
 The regions of memory that have been swapped out can be fetched
 by parsing "/proc/<PID>/smaps" for a process. The process's virtual
-address space (its memory) [4] can then be accessed via by reading
+address space (its memory) [2] can then be accessed via by reading
 its "/proc/<PID>/mem" file.
 
 By "seek()"-ing to an offset obtained by parsing "/proc<PID>/smaps"
