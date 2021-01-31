@@ -149,7 +149,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	if (*ssz <= 0) || (*ssz%2 != 0) || ((*ssz & (*ssz - 1)) != 0) {
+	if (*ssz <= 0) || ((*ssz & (*ssz - 1)) != 0) {
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(
 			argsErrMsg, "bad read split size value",
 		))
