@@ -49,7 +49,7 @@ BUILD
 
 
 USAGE
-    de-swap -p <pid> [-n -j <threads> -v[v]]
+    de-swap -p <pid> [-n -j <threads> -r <bytes> -v[v]]
 
 
 ARGUMENTS
