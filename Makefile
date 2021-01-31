@@ -4,17 +4,17 @@ SRC           = main.go
 all: mod fmt vet build
 
 fmt:
-	go fmt ./...
+	@go fmt ./...
 
 build:
-	go build -o ${PROG} ./...
+	@go build -o ${PROG} ./...
 
 vet:
-	go vet ./...
+	@go vet ./...
 
 mod:
-	go mod download
-	go mod tidy
-	go mod verify
+	@go mod download 2>&1
+	@go mod tidy
+	@go mod verify
 
 .PHONY: fmt build vet mod all
