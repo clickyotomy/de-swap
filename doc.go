@@ -8,8 +8,9 @@
 //          single thread if unspecified
 //   -r     split memory regions with large swap areas
 //          into smaller regions for better throughput
-//          during reads; must be > 0, exponents of 2;
-//          defaults to 64 kB
+//          during reads; disabled if set to 0, and if
+//          enabled it must be > 0 and in exponents of
+//          2; defaults to 64 kB if unspecified
 //   -v[v]  output verbosity; off by default
 package main
 
@@ -26,8 +27,9 @@ var usage = fmt.Sprintf(
 		"         single thread if unspecified\n"+
 		"  -r     split memory regions with large swap areas\n"+
 		"         into smaller regions for better throughput\n"+
-		"         during reads; must be > 0, exponents of 2;\n"+
-		"         defaults to %s\n"+
+		"         during reads; disabled if set to 0, and if\n"+
+		"         enabled it must be > 0 and in exponents of\n"+
+		"         2; defaults to %s if unspecified\n"+
 		"  -v[v]  output verbosity; off by default\n",
 	fmtBytes(overflow),
 )
