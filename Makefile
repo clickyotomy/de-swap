@@ -13,7 +13,7 @@ vet:
 	@go vet ./...
 
 mod:
-	@go mod download 2>&1
+	@go mod download
 	@go mod tidy
 	@go mod verify
 

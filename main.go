@@ -110,7 +110,6 @@ func deswap(pid, routines uint) error {
 			swapErrMsg,
 			((rd - atomic.LoadUint64(&mRead)) / 1024),
 		))
-
 	}
 
 	mSwap = sw
@@ -180,7 +179,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(mainErrMsg, err))
 		os.Exit(1)
 	} else {
-
 		fmt.Fprintf(os.Stdout, fmt.Sprintf(
 			mainEndMsg, (mSwap/1024), time.Since(now),
 		))
