@@ -15,8 +15,9 @@ var (
 	mmapRe = regexp.MustCompile(mmapPat)
 	swapRe = regexp.MustCompile(swapPat)
 
-	// For no-op and debug outputs.
+	// For no-op, disabled split-reads, and debug logging.
 	dryRun = false
+	rSplit = true
 	debug  = 0
 
 	// pageSz is the amount of memory to be read (in chunks)
@@ -82,15 +83,19 @@ func deswap(pid, routines uint) error {
 
 	// Split the regions into smaller chunks; loop again
 	// for total readable memory (after the splitting).
-	split(&swp)
-	nr = 0
-	for _, ent = range swp {
-		if !ent.split {
-			rd += ent.sz
-			nr++
+	if rSplit {
+		split(&swp)
+		nr = 0
+		for _, ent = range swp {
+			if !ent.split {
+				rd += ent.sz
+				nr++
+			}
 		}
+		fmt.Fprintf(os.Stdout, fmt.Sprintf(
+			smapsReadMsg, smp, (rd/1024), nr,
+		))
 	}
-	fmt.Fprintf(os.Stdout, fmt.Sprintf(smapsReadMsg, smp, (rd/1024), nr))
 
 	// Start sending data to the channel.
 	wg.Add(1)
@@ -149,7 +154,9 @@ func main() {
 		os.Exit(2)
 	}
 
-	if (*ssz <= 0) || ((*ssz & (*ssz - 1)) != 0) {
+	if *ssz == 0 {
+		rSplit = false
+	} else if (*ssz < 0) || ((*ssz & (*ssz - 1)) != 0) {
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(
 			argsErrMsg, "bad read split size value",
 		))
