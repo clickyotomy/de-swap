@@ -29,12 +29,12 @@ to clear the already swapped in memory from the swap space. This
 time, `swapoff' will be faster because there isn't much work for
 it to do.
 
-The regions of memory that have been swapped out can be fetched
-by parsing "/proc/<PID>/smaps" for a process. The process's virtual
+The regions of memory that have been swapped out can be fetched by
+parsing "/proc/<PID>/smaps" for a process. The process's virtual
 address space (its memory) [2] can then be accessed via by reading
 its "/proc/<PID>/mem" file. By "seek()"-ing to an offset obtained
-by parsing "/proc<PID>/smaps" (the "paged-out-to-swap" regions) and
-making a "read()" operation will bring them back to memory.
+by parsing "/proc<PID>/smaps" (the "paged-out-to-swap" regions),
+and making a "read()" operation will bring them back to memory.
 
 For more information, the answers and comments in this [3] thread
 are quite helpful. "Deactivating a Swap Area (11.9)" [4], describes
