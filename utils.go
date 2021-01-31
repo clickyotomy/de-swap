@@ -1,14 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
-	"strconv"
-	"sync"
-	"sync/atomic"
 )
 
 // help prints the usage of the command.
@@ -16,9 +11,31 @@ func help() {
 	fmt.Fprintf(os.Stderr, usage)
 }
 
-// getCapMap returns the captured groups for a string
+// fmtBytes format bytes to a human-readable string (IEC).
+func fmtBytes(nb uint64) string {
+	var (
+		base = uint64(1024)
+		exp  = base
+		idx  = uint64(0)
+
+		div uint64
+	)
+
+	if nb < base {
+		return fmt.Sprintf("%d B", nb)
+	}
+
+	for div = nb / base; div >= base; div /= base {
+		exp *= base
+		idx++
+	}
+
+	return fmt.Sprintf("%d %cB", (nb / exp), "kMGTPE"[idx])
+}
+
+// capture returns the captured groups for a string
 // matched with the given regular expression as a map.
-func getCapMap(re *regexp.Regexp, str string) map[string]string {
+func capture(re *regexp.Regexp, str string) map[string]string {
 	var match = re.FindStringSubmatch(str)
 	if match != nil {
 		var group = make(map[string]string)
@@ -36,197 +53,54 @@ func getCapMap(re *regexp.Regexp, str string) map[string]string {
 	return nil
 }
 
-// loadSmaps parses "/proc/{pid}/smaps" and loads
-// the given slice with memory regions in swap.
-func loadSmaps(path string, regions *[]mmapSwapRegion) error {
+// split divides memory regions with large swapped-out areas
+// into regions of that are at most "overflow" kilobytes each.
+func split(mr *[]mmapSwapRegion) {
 	var (
-		file *os.File
-		scnr *bufio.Scanner
-		err  error
-
-		rOff int64
-		rEnd int64
-		size uint64
-		swap bool
+		idx int
+		off uint64
+		end uint64
+		sz  uint64
+		brk []mmapSwapRegion
+		big []int
+		nr  int
 	)
 
-	if file, err = os.Open(path); err != nil {
-		return err
-	}
+	// Find regions containing with swapped-out
+	// memory greater than the split threshold.
+	for idx = 0; idx < len(*mr); idx++ {
+		if (*mr)[idx].sz > overflow {
+			big = append(big, idx)
 
-	defer file.Close()
-
-	// Read the whole file (line-by-line).
-	scnr = bufio.NewScanner(file)
-	for scnr.Scan() {
-		swap = false
-
-		// Match lines.
-		if mr := getCapMap(mmapRe, scnr.Text()); mr != nil {
-			// Get the regions of memory. We can trust
-			// the kernel to give us correct hex values.
-			rOff, _ = strconv.ParseInt(mr["off"], 16, 64)
-			rEnd, _ = strconv.ParseInt(mr["end"], 16, 64)
-		} else if sw := getCapMap(swapRe, scnr.Text()); sw != nil {
-			size, _ = strconv.ParseUint(sw["sz"], 10, 64)
-			// We only care about regions that are swapped.
-			if size > 0 {
-				swap = true
-			}
-		}
-
-		// Append to the slice.
-		if swap {
-			*regions = append(
-				*regions, mmapSwapRegion{size, rOff, rEnd},
-			)
+			// Mark the region as split.
+			(*mr)[idx].split = true
 		}
 	}
 
-	if err := scnr.Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// stream iterates oveer the slice generated from reading
-// "/proc/{pid}/smaps" and sends it a channel (subscribed
-// by "yank()").
-func stream(ch chan mmapSwapRegion, r *[]mmapSwapRegion, wg *sync.WaitGroup) {
-	for i := 0; i < len(*r); i++ {
-		ch <- (*r)[i]
-	}
-
-	defer func() {
-		close(ch)
-		wg.Done()
-	}()
-}
-
-// yank reads "/proc/{pid}/mem" for a process starting at an offset
-// until the specified boundary, effectively "swapping-in" the memory
-// that was "swapped-out."
-func yank(ch chan mmapSwapRegion, path string, wg *sync.WaitGroup) {
-	var (
-		ok  bool
-		err error
-
-		file *os.File
-		mr   mmapSwapRegion
-
-		rBad uint
-		rTot uint
-		nBuf int
-
-		pfx string
-		log string
-
-		buf = make([]byte, pageSz)
-	)
-
-loop:
-	for {
-		select {
-		case mr, ok = <-ch:
-			// The channel's closed - there
-			// is nothing else left to do.
-			if !ok {
-				break loop
-			}
-
-			pfx = fmt.Sprintf(
-				yankLogPfx, path, mr.off, mr.end, mr.sz,
-			)
-
-			// Don't do anything, just log and continue.
-			if dryRun {
-				log = fmt.Sprintf("%s %s", pfx, yankNoopMsg)
-				fmt.Fprintf(os.Stderr, log)
-
-				continue loop
-			}
-
-			// Read the file.
-			if file, err = os.Open(path); err != nil {
-				// It is (usually) a bad sign if
-				// this fails; but we'll try again.
-				if debug >= 1 {
-					log = fmt.Sprintf(
-						yankErrMsg, "open", err,
-					)
-					fmt.Fprintf(
-						os.Stderr,
-						fmt.Sprintf("%s %s", pfx, log),
-					)
-				}
-
-				continue loop
-			}
-
-			// Move to the offset in memory.
-			if _, err = file.Seek(mr.off, os.SEEK_SET); err != nil {
-				// Maybe something else might going on
-				// here (weird edge case); close the file
-				// handle and move oon.
-				if debug >= 1 {
-					log = fmt.Sprintf(
-						yankErrMsg, "seek", err,
-					)
-					fmt.Fprintf(
-						os.Stderr,
-						fmt.Sprintf("%s %s", pfx, log),
-					)
-				}
-
-				file.Close()
-				continue loop
-			}
-
-			// Bring it back to memory from swap.
-			// The "yanking" happens here.
-			rBad, rTot = 0, 0
-			for mr.off < mr.end {
-				// We don't care about the contents;
-				// just note that something went wrong.
-				if nBuf, err = file.Read(buf); err != nil {
-					if err != io.EOF {
-						rBad++
-					}
-					continue
-				}
-
-				if debug > 1 {
-					log = fmt.Sprintf(
-						yankDbgMsg, pfx, mr.off,
-						(mr.off + pageSz), nBuf,
-						pageSz, err,
-					)
-					fmt.Fprintf(os.Stderr, log)
-				}
-
-				mr.off += pageSz
-				rTot++
-			}
-
-			if rBad > 0 {
-				log = fmt.Sprintf(yankWarnMsg, rBad, rTot)
+	// Split up those regions into snaller chunks.
+	for _, idx = range big {
+		nr = 0
+		for off = (*mr)[idx].off; off < (*mr)[idx].end; off += overflow {
+			if (off + overflow) >= (*mr)[idx].end {
+				// For leftover regions (towards the end).
+				end = (*mr)[idx].end
+				sz = (end - off)
 			} else {
-				atomic.AddUint64(&swappedOut, mr.sz)
-				log = fmt.Sprintf(yankOKMsg)
+				end = (off + overflow)
+				sz = overflow
 			}
 
-			if debug >= 1 {
-				fmt.Fprintf(
-					os.Stderr,
-					fmt.Sprintf("%s %s", pfx, log),
-				)
-			}
+			brk = append(brk, mmapSwapRegion{sz, off, end, false})
 
-			file.Close()
+			nr++
 		}
 	}
 
-	// We're out!
-	defer wg.Done()
+	fmt.Fprintf(os.Stdout, fmt.Sprintf(
+		splitLogMsg, len(*mr), len(brk), len(big),
+		len(*mr)-len(big), fmtBytes(overflow),
+	))
+
+	// Add the new regions.
+	*mr = append(*mr, brk...)
 }
