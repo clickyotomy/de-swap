@@ -117,7 +117,9 @@ func deswap(pid, routines uint) error {
 		))
 	}
 
-	mSwap = sw
+	if !dryRun {
+		mSwap = sw
+	}
 	return nil
 }
 
