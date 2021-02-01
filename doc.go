@@ -1,6 +1,8 @@
 // Command de-swap brings back swapped out pages into memory.
+//
 // Usage
 //   de-swap -p <pid> [-n -j <threads> -r <bytes> -v[v]]
+//
 // Arguments
 //   -p     PID of the process to swap-in
 //   -n     no-op mode; turned off by default
