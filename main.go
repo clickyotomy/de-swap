@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 )
 
