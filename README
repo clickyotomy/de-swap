@@ -16,7 +16,7 @@ Before running the program (requires superuser privileges), it is
 probably a good idea verify that there is enough memory. If there
 isn't enough "free" memory to swap into, `oom-kill' will likely be
 triggered. Note that the "swapped-in" pages will not be cleared
-from the swap space because after the pages have been brought back
+from the swap space because, after the pages have been brought back
 into memory they are "SwapCached" [2], to avoid extra I/O (if) when
 they have to be paged out again.
 
