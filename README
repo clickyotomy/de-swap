@@ -10,7 +10,7 @@ In most cases, it is unnecessary to run this, because the kernel
 knows what it's doing. However, if there is a really good reason
 to (quicky) force "swapped-out" pages of a specific process back
 into memory, `de-swap' is faster compared to running `swapoff',
-because it tries "swap-in" everything.
+because it tries to "swap-in" everything.
 
 Before running the program (requires superuser privileges), it is
 probably a good idea verify that there is enough memory. If there
