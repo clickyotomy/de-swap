@@ -11,8 +11,10 @@ knows what it's doing. However, if there is a really good reason
 to (quicky) force "swapped-out" pages back into memory, `de-swap'
 runs faster compared to `swapoff'.
 
-Running the program requires superuser privileges. It can be
-followed up with running:
+Before running the program (requires superuser privileges), it
+is probably a good idea verify that there is enough memory. If
+there isn't enough "free" memory to swap into, `oom-kill' will
+likely be triggered. After it is run, following it up with a:
 
     swapoff [-v] [/<swapfile>|-a]; swapon [-v] [/<swapfile>|-a]
 
