@@ -8,19 +8,17 @@ The program works by performing a read operation (which forces a
 
 In most cases, it is unnecessary to run this, because the kernel
 knows what it's doing. However, if there is a really good reason
-to (quicky) force "swapped-out" pages back into memory, `de-swap'
-runs faster compared to `swapoff'.
+to (quicky) force "swapped-out" pages of a specific process back
+into memory, `de-swap' is faster compared to running `swapoff',
+because it would run for all the processes.
 
-Before running the program (requires superuser privileges), it
-is probably a good idea verify that there is enough memory. If
-there isn't enough "free" memory to swap into, `oom-kill' will
-likely be triggered. After it is run, following it up with a:
-
-    swapoff [-v] [/<swapfile>|-a]; swapon [-v] [/<swapfile>|-a]
-
-to clear the already swapped in memory from the swap space. This
-time, `swapoff' will be faster because there isn't much work for
-it to do.
+Before running the program (requires superuser privileges), it is
+probably a good idea verify that there is enough memory. If there
+isn't enough "free" memory to swap into, `oom-kill' will likely be
+triggered. Note that the "swapped-in" pages will not be cleared
+from the swap space because after the pages have been brought back
+into memory they are "SwapCached" [2], to avoid extra I/O (if) when
+they have to be paged out again.
 
 The regions of memory that have been swapped out can be fetched by
 parsing "/proc/<PID>/smaps" for a process. The process's virtual
