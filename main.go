@@ -8,6 +8,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"syscall"
 )
 
 var (
@@ -21,9 +22,9 @@ var (
 	debug  = 0
 
 	// pageSz is the amount of memory to be read (in chunks)
-	// from "/proc/{pid}/mem" per read operation. By default,
-	// it is set to 4 kB.
-	pageSz = uint64(4 * 1024)
+	// from "/proc/{pid}/mem" per read operation. This value
+	// is set to the memory page-size of the machine.
+	pageSz = uint(os.Getpagesize()) // In bytes.
 
 	// overflow is the threshold for swapped-out memory in a
 	// region that triggers a split operation in that region (break

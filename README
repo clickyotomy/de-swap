@@ -11,17 +11,8 @@ knows what it's doing. However, if there is a really good reason
 to (quicky) force "swapped-out" pages back into memory, `de-swap'
 runs faster compared to `swapoff'.
 
-Before running the program (requires superuser privileges), it
-is probably a good idea to drop caches (free slab objects and
-the page-cache [1]) with:
-
-    sync; echo 3 > /proc/sys/vm/drop_caches
-
-and verify that there is enough memory. If there isn't enough
-"free" memory to swap into, `oom-kill' will likely be triggered
-or, something worse (like a kernel panic).
-
-After it exits, run:
+Running the program requires superuser privileges. It can be
+followed up with running:
 
     swapoff [-v] [/<swapfile>|-a]; swapon [-v] [/<swapfile>|-a]
 
